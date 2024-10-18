@@ -8,7 +8,7 @@ public class Solution {
     public static void main(String[] args) {
         SenateBus bus = new SenateBus();
         Simulation simulation = new Simulation(bus);
-        simulation.startSimulation();  // Start the simulation immediately
+        simulation.startSimulation();
     }
 }
 
@@ -21,7 +21,7 @@ class SenateBus {
     synchronized void boardBus(Passenger passenger) {
         while (!isBoarding || passengerCount >= MAX_CAPACITY) {
             try {
-                wait();  // Wait if bus is not boarding or full
+                wait();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -31,18 +31,18 @@ class SenateBus {
         System.out.println("Passenger boarded. Current count: " + passengerCount);
 
         if (passengerCount >= MAX_CAPACITY || waitingPassengers.isEmpty()) {
-            notifyAll();  // Notify when bus is full or all passengers boarded
+            notifyAll();
         }
     }
 
     synchronized void arrive() {
         System.out.println("Bus has arrived.");
         isBoarding = true;
-        notifyAll();  // Notify waiting passengers to board
+        notifyAll();
 
         while (passengerCount < MAX_CAPACITY && !waitingPassengers.isEmpty()) {
             try {
-                wait();  // Wait until bus is full or no more passengers
+                wait();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -52,9 +52,9 @@ class SenateBus {
 
     synchronized void depart() {
         System.out.println("Bus departing with " + passengerCount + " passengers.");
-        passengerCount = 0;  // Reset for the next bus
+        passengerCount = 0;
         isBoarding = false;
-        notifyAll();  // Notify system that bus has departed
+        notifyAll();
     }
 
     synchronized void addWaitingPassenger(Passenger passenger) {
@@ -75,8 +75,8 @@ class Passenger implements Runnable {
 
     @Override
     public void run() {
-        bus.addWaitingPassenger(this);  // Add passenger to the queue
-        bus.boardBus(this);  // Try to board the bus
+        bus.addWaitingPassenger(this);
+        bus.boardBus(this);
     }
 }
 
@@ -94,12 +94,11 @@ class Simulation {
     }
 
     void startSimulation() {
-        // Trigger first bus arrival immediately
+        // Bus arrival simulation
         new Thread(() -> {
-            bus.arrive();  // Bus arrives instantly
             while (true) {
                 try {
-                    Thread.sleep((long) (getExponential(20) * 60000));  // Bus arrives every 20 minutes on average
+                    Thread.sleep((long) (getExponential(20) * 60000)); // Bus arrives every 20 minutes on average
                     bus.arrive();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -107,14 +106,13 @@ class Simulation {
             }
         }).start();
 
-        // Trigger first passenger arrival immediately
+        // Passenger arrival simulation
         new Thread(() -> {
-            passengerPool.submit(new Passenger(bus));  // First passenger arrives instantly
             while (true) {
                 try {
-                    Thread.sleep((long) (getExponential(0.5) * 1000));  // Passenger arrives every 30 seconds on average
+                    Thread.sleep((long) (getExponential(0.5) * 1000)); // Passenger arrives every 30 seconds on average
                     Passenger passenger = new Passenger(bus);
-                    passengerPool.submit(passenger);  // Use thread pool to handle passengers
+                    passengerPool.submit(passenger); // Use thread pool to handle passengers
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
